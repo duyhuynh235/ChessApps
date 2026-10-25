@@ -61,4 +61,20 @@ public class ChessRules {
         // ko chiếu thì giữ lại thành legalMoves
         return legalMoves;
     }
+
+    public boolean isCheckMate(Board board, PieceColor color) {
+        boolean check = isCheckIn(board, color);
+        // kiểm tra có bi check
+        if (!check) {
+            return false;
+        }
+        // kiếm tra tiếp các nước đi hợp lệ
+        List<Move> legalMoves = getLegalMoves(board, color);
+        for (Move move : legalMoves) {
+            if (legalMoves.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

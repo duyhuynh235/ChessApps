@@ -9,6 +9,11 @@ public class GameState {
 
     // quyen nhap thanh: 4 ô(trắng-xe hậu, trắng-xe vua, đen-xe hậu, đen-xe vua)
     private final boolean[] castlingRights = new boolean[4];
+    private static final int WHITE_QUEEN_SIDE = 0;
+    private static final int WHITE_KING_SIDE = 1;
+    private static final int BLACK_QUEEN_SIDE = 2;
+    private static final int BLACK_KING_SIDE = 3;
+
     private Position enPassantTarget; //null neu ko co
     private int halfMoveClock; // cho luat 50 nuoc di
     private final List<Move> moveHistory = new ArrayList<>();

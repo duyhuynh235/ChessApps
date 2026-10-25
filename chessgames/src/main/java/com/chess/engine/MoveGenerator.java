@@ -2,8 +2,10 @@ package com.chess.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.chess.model.Board;
+import com.chess.model.GameState;
 import com.chess.model.Move;
 import com.chess.model.Piece;
 import com.chess.model.PieceColor;
@@ -11,9 +13,10 @@ import com.chess.model.PieceType;
 import com.chess.model.Position;
 
 import javafx.geometry.Pos;
+import javafx.scene.chart.StackedAreaChart;
 
 public class MoveGenerator {
-    public List<Move> generateMoves(Board board, PieceColor color) {
+    public List<Move> generateMoves(Board board, PieceColor color, GameState state) {
         List<Move> storeAllMove = new ArrayList<>();
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
@@ -40,7 +43,7 @@ public class MoveGenerator {
                         break;
                     case KING:
                         // goi ham xu li cua vua
-                        storeAllMove.addAll(generateKingMoves(board, pos, p));
+                        storeAllMove.addAll(generateKingMoves(board, pos, p, state));
                         break;
                     case QUEEN:
                         // goi ham xu li cua hau
@@ -139,7 +142,8 @@ public class MoveGenerator {
         return store;
     }
 
-    private List<Move> generateKingMoves(Board board, Position pos, Piece p) {
+    private List<Move> generateKingMoves(Board board, Position pos,
+            Piece p, GameState state) {
         List<Move> store = new ArrayList<>();
         int[][] direction = {
                 { -1, -1 },
@@ -148,7 +152,7 @@ public class MoveGenerator {
                 { 0, -1 },
                 { 1, -1 },
                 { 0, 1 },
-                { 1,0 },
+                { 1, 0 },
                 { 1, 1 }
         };
 
@@ -263,5 +267,23 @@ public class MoveGenerator {
 
         }
         return store;
+    }
+
+    public boolean canCastleKingSide(Board board,Position kingPos, PieceColor color, GameState state) {
+        // Kiem tra vua có di chuyen hay ko
+
+        // xe ben vua co di chuyen chx
+
+        // xe có nam đúng vị trí ko
+
+        // f1/g1 hoặc f8/g8 có trống không?
+
+        // vua hiện tại có đang bị chiếu hay ko
+
+        // Ô f1/f8 có bị tấn công không?
+
+        // Ô g1/g8 có bị tấn công không?
+
+        return true;
     }
 }

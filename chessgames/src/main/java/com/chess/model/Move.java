@@ -11,7 +11,8 @@ public class Move {
     private final boolean kingSideCastle;
     private final boolean queenSideCastle;
 
-    public Move(Position from, Position to, Piece moved, Piece captured, boolean isEnPassant, PieceType promotion,
+    public Move(Position from, Position to, Piece moved, Piece captured, 
+        boolean isEnPassant, PieceType promotion,
             boolean kingSideCastle, boolean queenSideCastle) {
         this.from = from;
         this.to = to;
@@ -54,4 +55,11 @@ public class Move {
     public boolean isQueenSideCastle() {
         return queenSideCastle;
     }
+
+    @Override
+    public String toString() {
+        return "Move [from=" + from.getRow() + ", to=" + to.getCol() + "]";
+    }
+
+    
 }
