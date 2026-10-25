@@ -2,7 +2,6 @@ package com.chess.engine;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import com.chess.model.Board;
 import com.chess.model.GameState;
@@ -11,9 +10,6 @@ import com.chess.model.Piece;
 import com.chess.model.PieceColor;
 import com.chess.model.PieceType;
 import com.chess.model.Position;
-
-import javafx.geometry.Pos;
-import javafx.scene.chart.StackedAreaChart;
 
 public class MoveGenerator {
     public List<Move> generateMoves(Board board, PieceColor color, GameState state) {

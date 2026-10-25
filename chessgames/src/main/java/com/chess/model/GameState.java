@@ -1,5 +1,7 @@
 package com.chess.model;
 
+import static com.chess.model.PieceColor.WHITE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,14 +16,25 @@ public class GameState {
     private static final int BLACK_QUEEN_SIDE = 2;
     private static final int BLACK_KING_SIDE = 3;
 
-    private Position enPassantTarget; //null neu ko co
+    private Position enPassantTarget; // null neu ko co
     private int halfMoveClock; // cho luat 50 nuoc di
     private final List<Move> moveHistory = new ArrayList<>();
 
-    public GameState(Board board){
+    public GameState(Board board) {
         this.board = board;
     }
-    public GameState clone(){
+
+    public static GameState newGame() {
+        Board initialBoard = Board.createStandardBoard();
+        GameState state = new GameState(initialBoard);
+        state.setCurrentTurnColor(WHITE);
+        for (int i = 0;i<4;i++) {
+            state.castlingRights[i] = true;
+        }
+        return state;
+    }
+
+    public GameState clone() {
         return null;
     }
 
@@ -60,6 +73,5 @@ public class GameState {
     public List<Move> getMoveHistory() {
         return moveHistory;
     }
-    
 
 }
