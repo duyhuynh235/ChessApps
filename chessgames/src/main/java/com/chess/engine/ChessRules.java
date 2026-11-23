@@ -1,13 +1,18 @@
 package com.chess.engine;
 
+import static com.chess.model.PieceType.PAWN;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import com.chess.model.Board;
+import com.chess.model.GameState;
 import com.chess.model.Move;
 import com.chess.model.Piece;
 import com.chess.model.PieceColor;
 import com.chess.model.Position;
+
+import javafx.geometry.Pos;
 
 public class ChessRules {
 
@@ -15,33 +20,17 @@ public class ChessRules {
     public boolean isCheckIn(Board board, PieceColor color) {
         // Lấy ví trí quân VUA
         Position kingPosition = board.findKingPiece(color);
-
-        // lấy vị trí màu quân dịch
-        PieceColor opponentColor = color.getPieceColor();
-
-        MoveGenerator generator = new MoveGenerator();
-        // tạo nước đi quan địch
-        List<Move> opponentMoves = generator.generateMoves(board, opponentColor);
-
-        // vòng lặp kiểm tra trong nước đi của địch
-        for (Move moves : opponentMoves) {
-            // nước đi = vị trí quân vvua
-            if (moves.getTo().equals(kingPosition)) {
-                // => true
-                return true;
-            }
-        }
-
-        return false;
+        if(kingPosition == null) return false;
+        return isSquareAttacked(board, kingPosition, color.getPieceColor());
     }
 
     // keim tra nuoc di hop le
-    public List<Move> getLegalMoves(Board board, PieceColor color) {
+    public List<Move> getLegalMoves(Board board, PieceColor color, GameState state) {
         List<Move> legalMoves = new ArrayList<>();
 
         // lấy generateMove
         MoveGenerator generator = new MoveGenerator();
-        List<Move> allMoves = generator.generateMoves(board, color);
+        List<Move> allMoves = generator.generateMoves(board, color, state);
 
         // duyệt toàn bộ allMoves
         for (Move move : allMoves) {
@@ -51,30 +40,48 @@ public class ChessRules {
             Piece movingPiece = cloneBoard.getPiece(move.getFrom());
             cloneBoard.setPiece(move.getFrom(), null);
             cloneBoard.setPiece(move.getTo(), movingPiece);
+
+            if(move.isEnPassant()){
+                Position capturedPos = new Position(move.getFrom().getRow(), move.getTo().getCol());
+                cloneBoard.setPiece(capturedPos, null);
+            }
+
             // kiếm tra
             boolean isChecked = isCheckIn(cloneBoard, color);
             if (!isChecked) {
                 legalMoves.add(move);
             }
-            // còn bị check thì bỏ
         }
         // ko chiếu thì giữ lại thành legalMoves
         return legalMoves;
     }
 
-    public boolean isCheckMate(Board board, PieceColor color) {
-        boolean check = isCheckIn(board, color);
-        // kiểm tra có bi check
-        if (!check) {
+    public boolean isCheckMate(Board board, PieceColor color , GameState state) {
+        if(!isCheckIn(board, color)){
             return false;
         }
-        // kiếm tra tiếp các nước đi hợp lệ
-        List<Move> legalMoves = getLegalMoves(board, color);
-        for (Move move : legalMoves) {
-            if (legalMoves.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+        return getLegalMoves(board, color, state).isEmpty();
     }
+
+    public boolean isStalemate(Board board, PieceColor color, GameState state){
+        if(isCheckIn(board, color)){
+            return false;
+        }
+        return getLegalMoves(board, color,state).isEmpty();
+    }
+
+    public boolean isSquareAttacked(Board board, Position square, PieceColor attackedColor){
+        MoveGenerator generator = new MoveGenerator();
+        List<Move> opponentMoves = generator.generateMoves(board, attackedColor, null);
+
+        for (Move move : opponentMoves) {
+            // Tot an cheo, ko tan cong di thang
+            if(move.getMoved().getType() == PAWN 
+                && move.getFrom().getCol()== move.getTo().getCol()){
+                    continue;
+            }
+            if(move.getTo().equals(square)) return true;
+        }
+        return false;
+    }    
 }

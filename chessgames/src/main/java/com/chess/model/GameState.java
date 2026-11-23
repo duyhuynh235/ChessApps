@@ -82,9 +82,16 @@ public class GameState {
                         originalCapturedPosition.getCol());
                 copiedCaptured = Board.createStandardPiece(originalCaptured.getColor(), originalCaptured.getType(),
                         copiedCapturePosition);
-                // TODO: Create each copied Move with its special-move flags
-                // and add it to copy.moveHistory.
-
+                Move copiedMove = new Move(
+                        copiedFrom,
+                        copiedTo,
+                        copiedMoved,
+                        copiedCaptured,
+                        moves.isEnPassant(),
+                        moves.getPromotion(),
+                        moves.isKingSideCastle(),
+                        moves.isQueenSideCastle());
+                copy.moveHistory.add(copiedMove);
             }
 
         }

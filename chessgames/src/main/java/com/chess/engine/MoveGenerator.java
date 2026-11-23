@@ -1,5 +1,7 @@
 package com.chess.engine;
 
+import static com.chess.model.PieceColor.WHITE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +14,7 @@ import com.chess.model.PieceType;
 import com.chess.model.Position;
 
 public class MoveGenerator {
+
     public List<Move> generateMoves(Board board, PieceColor color, GameState state) {
         List<Move> storeAllMove = new ArrayList<>();
         for (int row = 0; row < 8; row++) {
@@ -27,7 +30,7 @@ public class MoveGenerator {
                 switch (p.getType()) {
                     case PAWN:
                         // goi lam xu li cua tot
-                        storeAllMove.addAll(generatePawnMoves(board, pos, p));
+                        storeAllMove.addAll(generatePawnMoves(board, pos, p, state));
                         break;
                     case KNIGHT:
                         // goi ham xu li cua ngua
@@ -56,7 +59,7 @@ public class MoveGenerator {
         return storeAllMove;
     }
 
-    private List<Move> generatePawnMoves(Board board, Position pos, Piece p) {
+    private List<Move> generatePawnMoves(Board board, Position pos, Piece p, GameState state) {
         List<Move> store = new ArrayList<>();
 
         int row = pos.getRow();
@@ -65,12 +68,15 @@ public class MoveGenerator {
         // (A) Tinh huong di va hang xuat phat tu mau - CHI 1 LAN
         int direction;
         int startRow;
+        int promotionRow;
         if (p.getColor() == PieceColor.WHITE) {
             direction = -1;
             startRow = 6;
+            promotionRow = 0;
         } else {
             direction = 1;
             startRow = 1;
+            promotionRow = 7;
         }
 
         // (B) DI THANG 1 O
@@ -79,7 +85,7 @@ public class MoveGenerator {
             Position to = new Position(oneRow, col);
             Piece target = board.getPiece(to);
             if (target == null) { // di thang chi khi TRONG
-                store.add(new Move(pos, to, p, target, false, null, false, false));
+                addPawnMove(store, pos, to, p, null, false, promotionRow);
             }
         }
 
@@ -107,13 +113,31 @@ public class MoveGenerator {
                     Position toDiag = new Position(diagRow, c);
                     Piece targetDiag = board.getPiece(toDiag);
                     if (targetDiag != null && targetDiag.getColor() != p.getColor()) {
-                        store.add(new Move(pos, toDiag, p, targetDiag, false, null, false, false));
+                        addPawnMove(store, pos, toDiag, p, targetDiag, false, promotionRow);
+                    } else if (state != null && state.getEnPassantTarget() != null
+                            && toDiag.equals(state.getEnPassantTarget())) {
+                        Piece capturedPawn = board.getPiece(new Position(row, c));
+                        if (capturedPawn != null && capturedPawn.getColor() != p.getColor()) {
+                            store.add(new Move(pos, toDiag, p, capturedPawn, true, null, false, false));
+                        }
                     }
                 }
             }
         }
 
         return store;
+    }
+
+    private void addPawnMove(List<Move> store, Position from, Position to, Piece piece,
+            Piece captured, boolean isEnPassant, int promotionRow) {
+        if (to.getRow() == promotionRow) {
+            PieceType[] promos = { PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT };
+            for (PieceType type : promos) {
+                store.add(new Move(from, to, piece, captured, isEnPassant, type, false, false));
+            }
+        } else {
+            store.add(new Move(from, to, piece, captured, isEnPassant, null, false, false));
+        }
     }
 
     private List<Move> generateRookMoves(Board board, Position pos, Piece p) {
@@ -173,6 +197,15 @@ public class MoveGenerator {
             }
 
             store.add(new Move(pos, to, p, target, false, null, false, false));
+        }
+
+        if (state != null) {
+            if (canCastleKingSide(board, pos, p.getColor(), state)) {
+                store.add(new Move(pos, new Position(row, 6), p, null, false, null, true, false));
+            }
+            if (canCastleQueenSide(board, pos, p.getColor(), state)) {
+                store.add(new Move(pos, new Position(row, 2), p, null, false, null, false, true));
+            }
         }
         return store;
     }
@@ -265,21 +298,58 @@ public class MoveGenerator {
         return store;
     }
 
-    public boolean canCastleKingSide(Board board,Position kingPos, PieceColor color, GameState state) {
+    public boolean canCastleKingSide(Board board, Position kingPos, PieceColor color, GameState state) {
+        if (state == null || !state.canCastleKingSide(color)) {
+            return false;
+        }
+        int row = (color == WHITE) ? 7 : 0;
         // Kiem tra vua có di chuyen hay ko
-
+        if (kingPos.getCol() != 4 || kingPos.getRow() != row) {
+            return false;
+        }
         // xe ben vua co di chuyen chx
+        Piece rook = board.getPiece(new Position(row, 7));
+        if (rook == null || rook.getType() != PieceType.ROOK || rook.getColor() != color) {
+            return false;
+        }
 
-        // xe có nam đúng vị trí ko
+        if (board.getPiece(new Position(row, 5)) != null ||
+                board.getPiece(new Position(row, 6)) != null)
+            return false;
 
-        // f1/g1 hoặc f8/g8 có trống không?
+        ChessRules rules = new ChessRules();
+        PieceColor opponenet = color.getPieceColor();
 
-        // vua hiện tại có đang bị chiếu hay ko
+        return !rules.isSquareAttacked(board, kingPos, opponenet)
+                && !rules.isSquareAttacked(board, new Position(row, 5), opponenet)
+                && !rules.isSquareAttacked(board, new Position(row, 6), opponenet);
+    }
 
-        // Ô f1/f8 có bị tấn công không?
+    public boolean canCastleQueenSide(Board board, Position kingPos, PieceColor color, GameState state) {
+        if (state == null || !state.canCastleQueenSide(color)) {
+            return false;
+        }
+        int row = (color == WHITE) ? 7 : 0;
+        // Kiem tra vua có di chuyen hay ko
+        if (kingPos.getCol() != 4 || kingPos.getRow() != row) {
+            return false;
+        }
+        // xe ben vua co di chuyen chx
+        Piece rook = board.getPiece(new Position(row, 0));
+        if (rook == null || rook.getType() != PieceType.ROOK || rook.getColor() != color) {
+            return false;
+        }
 
-        // Ô g1/g8 có bị tấn công không?
+        if (board.getPiece(new Position(row, 1)) != null ||
+                board.getPiece(new Position(row, 2)) != null ||
+                board.getPiece(new Position(row, 3)) != null)
+            return false;
 
-        return true;
+        ChessRules rules = new ChessRules();
+        PieceColor opponenet = color.getPieceColor();
+
+        return !rules.isSquareAttacked(board, kingPos, opponenet)
+                && !rules.isSquareAttacked(board, new Position(row, 3), opponenet)
+                && !rules.isSquareAttacked(board, new Position(row, 2), opponenet);
     }
 }

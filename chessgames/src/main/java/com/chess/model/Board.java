@@ -93,7 +93,7 @@ public class Board {
                         case QUEEN: c = 'Q'; break; 
                         default: c = 'K'; break;
                     }
-                    if(p.getColor()==WHITE) c = Character.toUpperCase(c);
+                    if(p.getColor()==BLACK) c = Character.toLowerCase(c);
                 }
                 sb.append(c).append(' ');
             }
