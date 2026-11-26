@@ -39,6 +39,7 @@ public class MoveExecutor {
         Piece movingPiece = move.getMoved();
 
         if (move.isEnPassant()) {
+            // Captured pawn sits on the moving pawn's starting rank, not on the destination square
             board.setPiece(new Position(from.getRow(), to.getCol()), null);
         }
 
@@ -49,6 +50,7 @@ public class MoveExecutor {
         }
 
         if (move.getPromotion() != null) {
+            // Replace the promoted pawn on the destination square with the chosen piece
             Piece promoted = Board.createStandardPiece(movingPiece.getColor(), move.getPromotion(), to);
             board.setPiece(to, promoted);
         }
@@ -85,6 +87,7 @@ public class MoveExecutor {
         }
 
         Piece captured = move.getCaptured();
+        // Revoke opponent's castling right if their corner rook was captured before moving
         if (captured != null && captured.getType() == PieceType.ROOK) {
             PieceColor oppColor = color.getPieceColor();
             int oppRow = (oppColor == PieceColor.WHITE) ? 7 : 0;
@@ -102,6 +105,7 @@ public class MoveExecutor {
         Position from = move.getFrom();
         Position to = move.getTo();
 
+        // En passant is only valid on the immediately following turn after a 2-square pawn push
         if (movingPiece.getType() == PieceType.PAWN && Math.abs(to.getRow() - from.getRow()) == 2) {
             int midRow = (from.getRow() + to.getRow()) / 2;
             state.setEnPassantTarget(new Position(midRow, from.getCol()));
@@ -113,6 +117,7 @@ public class MoveExecutor {
     private void updateClockHistoryAndTurn(GameState state, Move move) {
         Piece movingPiece = move.getMoved();
 
+        // Reset 50-move rule clock on pawn moves or captures; otherwise increment
         if (movingPiece.getType() == PieceType.PAWN || move.getCaptured() != null) {
             state.setHalfMoveClock(0);
         } else {
