@@ -12,8 +12,6 @@ import com.chess.model.Piece;
 import com.chess.model.PieceColor;
 import com.chess.model.Position;
 
-import javafx.geometry.Pos;
-
 public class ChessRules {
 
     // Kieserm tra vua có bị chiếu ko
