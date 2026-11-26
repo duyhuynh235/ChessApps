@@ -5,7 +5,6 @@ import static com.chess.model.PieceColor.WHITE;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.geometry.Pos;
 
 public class GameState {
     private final Board board;
